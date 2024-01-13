@@ -8,24 +8,46 @@ import CMButton from "./src/components/CMButton";
 import Uploader from "./src/components/Uploader";
 
 const App = () => {
-  const [imageUrl, setImageUrl] = useState("");
   // react form hook
   const { handleSubmit } = useForm();
 
-  // form submit
-  const onSubmit = async () => {
-    console.log("imageUrl", imageUrl);
+  // react hook
+  const [data, setData] = useState(null);
+  const [image, setImage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-    axios
-      .post("192.168.0.127/predict", {
-        file: imageUrl,
-      })
-      .then((res) => {
-        console.log("res", res);
-      })
-      .catch((err) => {
-        console.log("error >><<", err);
+  // handle image upload
+  const onSubmit = async () => {
+    if (!image) {
+      console.log("image is required!");
+      return;
+    }
+
+    setIsLoading(true);
+
+    let formData = new FormData();
+
+    formData.append("file", {
+      uri: image,
+      type: "image/jpeg",
+      name: "image.jpg",
+    });
+
+    try {
+      const res = await axios({
+        method: "post",
+        url: "http://192.168.0.127:8000/predict",
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
+      setIsLoading(false);
+      setData(res?.data);
+    } catch (err) {
+      setIsLoading(false);
+      console.log("err", err);
+    }
   };
 
   return (
@@ -36,15 +58,16 @@ const App = () => {
         <View>
           <Text className="text-base font-semibold mb-3">Category Images</Text>
 
-          <Uploader imageUrl={imageUrl} setImageUrl={setImageUrl} />
+          <Uploader imageUrl={image} setImageUrl={setImage} setData={setData} />
         </View>
 
         {/* save button  */}
         <View className="">
           <CMButton
-            disabled={imageUrl === "" ? true : false}
-            disabledBg={imageUrl === "" ? "bg-gray-600" : ""}
-            title="Save"
+            loading={isLoading}
+            disabled={image === "" || image === null ? true : false}
+            disabledBg={image === "" || image === null ? "bg-gray-400" : ""}
+            title="predict"
             height="h-12"
             color="#a8a29e"
             fontWeight="font-base"
@@ -53,6 +76,13 @@ const App = () => {
             onPress={handleSubmit(onSubmit)}
           />
         </View>
+
+        {data && image && (
+          <View className="mt-8">
+            <Text>class : {data.class}</Text>
+            <Text>confidence : {data.confidence}</Text>
+          </View>
+        )}
       </View>
     </View>
   );

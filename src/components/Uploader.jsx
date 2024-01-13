@@ -3,7 +3,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 
-const Uploader = ({ imageUrl, setImageUrl }) => {
+const Uploader = ({ imageUrl, setImageUrl, setData }) => {
   // react hook
   const [err, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,10 +21,11 @@ const Uploader = ({ imageUrl, setImageUrl }) => {
     }
   };
 
-  const handleRemoveImage = (img) => {
-    setLoading(true);
+  const handleRemoveImage = () => {
+    setData(null);
     setError("");
-    setImageUrl("");
+    setLoading(true);
+    setImageUrl(null);
     setLoading(false);
   };
 
